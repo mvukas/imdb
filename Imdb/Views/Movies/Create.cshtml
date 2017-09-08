@@ -1,0 +1,323 @@
+﻿@model Imdb.ViewModels.NewMovieViewModel
+
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Create</h2>
+
+
+<form action="@Url.Action("Create","Movies")" method="post" enctype="multipart/form-data" id="movieform">
+
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Movie</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control", @id = "name" } })
+                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model=>model.PosterPath,new { @id="posterpath"})
+                <button class="btn btn-link" id="prefillform" type="button" >Get Movie Details!</button>
+
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Poster, new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Poster, new { @class = "form-control", type = "file", @id = "poster" })
+            </div>
+        </div>
+
+        <div class="form-group" >
+            <div id="imgpreview" class="img-thumbnail " style="display:none" >
+                <img class="img-responsive" id="targetImg" />
+                <div class="caption">
+                    <a href="#" onclick="ClearPreview()"><i class="glyphicon glyphicon-trash"></i> </a>
+
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Plot, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Plot,  new { @class = "form-control", @id = "plot",@rows=10 })
+                @Html.ValidationMessageFor(model => model.Plot, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.YearOfRelease, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.YearOfRelease, new { htmlAttributes = new { @class = "form-control", @id = "yor" } })
+                @Html.ValidationMessageFor(model => model.YearOfRelease, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <!--
+        <div class="form-group">
+                @Html.LabelFor(model => model.Poster, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                     @Html.EditorFor(model => model.Poster, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Poster, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            -->
+        <div class="form-group">
+            @Html.LabelFor(model => model.Actors, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.ListBoxFor(model => model.ActorsId, new MultiSelectList(Model.Actors, "Id", "Person.Name"), new { @class = "form-control", @id = "actors",@size=15 })
+                   
+                 <button  class="btn btn-link" id="addactors" type="button" onclick="NewActor()">Add New Actor </button>  
+                <br />
+                @Html.ValidationMessageFor(model => model.ActorsId, "", new { @class = "text-danger" })
+
+
+            </div>
+
+          
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Producer, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.Producer, new SelectList(Model.Producers, "Id", "Person.Name"),"Select Producer" ,new { @class = "form-control", @id = "producer" })
+                @Html.ValidationMessageFor(model => model.Producer, "", new { @class = "text-danger" })
+                <br />
+
+                 <button class="btn btn-link" id="baddproducer" type="button" onclick="NewProducer()">Add New Producer</button>
+                <br /><br />
+                @*<label>Add ALL Actors From the API?</label>
+                <input type="checkbox" id="addallactors" />*@
+            
+            </div>
+           
+
+
+        </div>
+        
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="button" value="Create" class="btn btn-default"  id="sub" />
+                @*<input type="button" value="Create Actors and Producers." id="actorsandproducers" class="btn btn-default" />*@
+            </div>
+        </div>
+    </div>
+    </form>
+
+    <div>
+        @Html.ActionLink("Back to List", "Index")
+    </div>
+
+
+<div class="addprod" id="addnewproducer" style="display:none">
+    
+    <div class="form-horizontal">
+        <h4> Add Producer </h4>
+
+        <hr />  
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Name, new { htmlAttributes = new { @class = "form-control", @id = "newname" } })
+                <p class="text-danger" id="newnamep" style="display:none"> Please Enter a valid Name </p> 
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Sex, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Sex, new { htmlAttributes = new { @class = "form-control", @id = "newsex" } })
+                <p class="text-danger" id="newsexp" style="display:none">Male/Female/Others </p>
+             </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Dob, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Dob, new { htmlAttributes = new { @class = "form-control", @id = "newdob" } })
+                <p class="text-danger" id="newdobp" style="display:none">Select a Valid Dob </p>
+
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Bio, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Person.Bio, new { @class = "form-control", @id = "newbio", @rows = 10 })
+                @Html.ValidationMessageFor(model => model.Person.Bio, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="button" onclick="addnewproducer()" value="Create" id="NewProducer" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<div class="addact" id="addnewactor1" style="display:none">
+    <div class="form-horizontal">
+        <h4> Add Actor </h4>
+
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Name, new { htmlAttributes = new { @class = "form-control", @id = "a1newname" } })
+                <p class="text-danger" id="newnamea1" style="display:none"> Please Enter a valid Name </p> </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Sex, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+
+                @Html.EditorFor(model => model.Person.Sex, new { htmlAttributes = new { @class = "form-control", @id = "a1newsex" } })
+                <p class="text-danger" id="newsexa1" style="display:none"> Male/Female/Other </p> 
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Dob, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Dob, new { htmlAttributes = new { @class = "form-control", @id = "a1newdob" } })
+                <p class="text-danger" id="newdoba1" style="display:none"> Select a valid DOB. </p> 
+            
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Bio, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Person.Bio, new { @class = "form-control", @id = "a1newbio", @rows = 10 })
+                @Html.ValidationMessageFor(model => model.Person.Bio, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="button" onclick="addnewactor1()" value="Create" id="NewActor1" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="addnewactor2" style="display:none">
+    <div class="form-horizontal">
+        <h4> Add Actor</h4>
+
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Name, new { htmlAttributes = new { @class = "form-control", @id = "a2newname" } })
+                <p class="text-danger" id="newnamea2" style="display:none"> Please Enter a valid Name </p>    
+            
+             </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Sex, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Sex, new { htmlAttributes = new { @class = "form-control", @id = "a2newsex" } })
+                <p class="text-danger" id="newsexa2" style="display:none"> Male/Female/others </p> 
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Dob, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Dob, new { htmlAttributes = new { @class = "form-control", @id = "a2newdob" } })
+                <p class="text-danger" id="newdobxa2" style="display:none"> Select a valid DOB. </p> 
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Bio, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Person.Bio, new { @class = "form-control", @id = "a2newbio", @rows = 10 })
+                @Html.ValidationMessageFor(model => model.Person.Bio, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="button" onclick="addnewactor2()" value="Create" id="NewActor2" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<div id="addnewactor3" style="display:none">
+    <div class="form-horizontal">
+        <h4> Add Actor</h4>
+
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Name, new { htmlAttributes = new { @class = "form-control", @id = "a3newname" } })
+                <p class="text-danger" id="newnamea3" style="display:none"> Enter a valid Name. </p> 
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Sex, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Sex, new { htmlAttributes = new { @class = "form-control", @id = "a3newsex" } })
+                <p class="text-danger" id="newsexa3" style="display:none"> Male/Female/others </p> 
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Dob, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Person.Dob, new { htmlAttributes = new { @class = "form-control", @id = "a3newdob" } })
+                <p class="text-danger" id="newdob3" style="display:none">select a Valid DOB. </p> 
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Person.Bio, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Person.Bio, new { @class = "form-control", @id = "a3newbio", @rows = 10 })
+                @Html.ValidationMessageFor(model => model.Person.Bio, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="button" onclick="addnewactor3()" value="Create" id="NewActor3" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+        @Scripts.Render("~/Scripts/completejs.js")
+        @Scripts.Render("~/Scripts/validateperson.js")
+
+
+
+
+    }
